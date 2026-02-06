@@ -156,10 +156,14 @@ export class GhosttyWindowAction extends SingletonAction {
 
   /**
    * Format title for multi-line display on button
+   * Splits at natural break points (hyphens or spaces) or midpoint
+   * Truncates lines that are too long
    */
   private formatTitle(title: string): string {
+    const maxLineLength = 9;
+
     // If short enough, return as-is
-    if (title.length <= 10) {
+    if (title.length <= maxLineLength) {
       return title;
     }
 
@@ -181,18 +185,34 @@ export class GhosttyWindowAction extends SingletonAction {
       }
     }
 
+    let line1: string;
+    let line2: string;
+
     if (splitIndex > 0 && splitIndex < title.length - 1) {
       const char = title[splitIndex];
       if (char === '-') {
         // Keep hyphen on first line
-        return title.substring(0, splitIndex + 1) + '\n' + title.substring(splitIndex + 1);
+        line1 = title.substring(0, splitIndex + 1);
+        line2 = title.substring(splitIndex + 1);
       } else {
         // Space - don't include it
-        return title.substring(0, splitIndex) + '\n' + title.substring(splitIndex + 1);
+        line1 = title.substring(0, splitIndex);
+        line2 = title.substring(splitIndex + 1);
       }
+    } else {
+      // No good split point - split at midpoint
+      line1 = title.substring(0, midpoint);
+      line2 = title.substring(midpoint);
     }
 
-    // No good split point - just split at midpoint
-    return title.substring(0, midpoint) + '\n' + title.substring(midpoint);
+    // Truncate lines if too long
+    if (line1.length > maxLineLength) {
+      line1 = line1.substring(0, maxLineLength - 1) + '…';
+    }
+    if (line2.length > maxLineLength) {
+      line2 = line2.substring(0, maxLineLength - 1) + '…';
+    }
+
+    return line1 + '\n' + line2;
   }
 }
