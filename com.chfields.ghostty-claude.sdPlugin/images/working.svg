@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <rect width="144" height="144" rx="16" fill="#3B82F6"/>
+  <g>
+    
+    <circle cx="72" cy="36" r="8" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <circle cx="72" cy="36" r="3" fill="#FFFFFF"/>
+    <line x1="72" y1="18" x2="72" y2="24" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="72" y1="48" x2="72" y2="54" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="54" y1="36" x2="60" y2="36" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="84" y1="36" x2="90" y2="36" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="59" y1="23" x2="63" y2="27" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="81" y1="45" x2="85" y2="49" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="59" y1="49" x2="63" y2="45" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="81" y1="27" x2="85" y2="23" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+node_modules/
+*.js.map
+
+# Keep compiled JS in plugin folder
+!com.chfields.ghostty-claude.sdPlugin/bin/*.js
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

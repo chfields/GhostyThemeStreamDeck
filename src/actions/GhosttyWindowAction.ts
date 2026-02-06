@@ -1,0 +1,198 @@
+import streamDeck, {
+  action,
+  KeyDownEvent,
+  SingletonAction,
+  WillAppearEvent,
+  WillDisappearEvent,
+  Action,
+} from '@elgato/streamdeck';
+import { WindowStateManager } from '../services/WindowStateManager';
+import { GhosttyWindow } from '../services/ThemePickerClient';
+
+// Map of action ID to assigned window index
+const buttonAssignments = new Map<string, number>();
+
+// Track all active actions in order of appearance
+const activeActions: Action[] = [];
+
+// Shared state manager instance
+let stateManager: WindowStateManager | null = null;
+
+// Images for each state
+const STATE_IMAGES: Record<string, string> = {
+  waiting: 'images/waiting',
+  working: 'images/working',
+  running: 'images/running',
+  notRunning: 'images/not-running',
+};
+
+@action({ UUID: 'com.chfields.ghostty-claude.window' })
+export class GhosttyWindowAction extends SingletonAction {
+  /**
+   * Called when a button appears on the Stream Deck
+   */
+  override async onWillAppear(ev: WillAppearEvent<object>): Promise<void> {
+    const actionInstance = ev.action;
+    const actionId = actionInstance.id;
+
+    // Add to active actions if not already present
+    if (!activeActions.find(a => a.id === actionId)) {
+      activeActions.push(actionInstance);
+    }
+
+    // Initialize state manager on first button
+    if (!stateManager) {
+      stateManager = new WindowStateManager();
+
+      // Listen for state changes
+      stateManager.addListener((change) => {
+        this.updateAllButtons(change.windows);
+      });
+
+      // Start polling
+      stateManager.start(1000);
+    }
+
+    // Assign this button to a window slot based on its position
+    const buttonIndex = activeActions.findIndex(a => a.id === actionId);
+    buttonAssignments.set(actionId, buttonIndex);
+
+    // Update this button with current state
+    const windows = stateManager.getWindows();
+    await this.updateButton(actionInstance, buttonIndex, windows);
+  }
+
+  /**
+   * Called when a button disappears from the Stream Deck
+   */
+  override async onWillDisappear(ev: WillDisappearEvent<object>): Promise<void> {
+    const actionId = ev.action.id;
+
+    // Remove from tracking
+    const index = activeActions.findIndex(a => a.id === actionId);
+    if (index !== -1) {
+      activeActions.splice(index, 1);
+    }
+    buttonAssignments.delete(actionId);
+
+    // Stop state manager if no buttons left
+    if (activeActions.length === 0 && stateManager) {
+      stateManager.stop();
+      stateManager = null;
+    }
+  }
+
+  /**
+   * Called when a button is pressed
+   */
+  override async onKeyDown(ev: KeyDownEvent<object>): Promise<void> {
+    const actionInstance = ev.action;
+    const actionId = actionInstance.id;
+    const buttonIndex = buttonAssignments.get(actionId);
+
+    if (buttonIndex === undefined || !stateManager) {
+      return;
+    }
+
+    const windows = stateManager.getWindows();
+
+    if (buttonIndex < windows.length) {
+      const window = windows[buttonIndex];
+
+      try {
+        await stateManager.focusWindow(window.id);
+        // Brief visual feedback - flash the title
+        await actionInstance.setTitle('...');
+        setTimeout(async () => {
+          if (stateManager) {
+            await this.updateButton(actionInstance, buttonIndex, stateManager.getWindows());
+          }
+        }, 200);
+      } catch (err) {
+        console.error('Failed to focus window:', err);
+        await actionInstance.showAlert();
+      }
+    }
+  }
+
+  /**
+   * Update all buttons with current window state
+   */
+  private async updateAllButtons(windows: GhosttyWindow[]): Promise<void> {
+    for (const actionInstance of activeActions) {
+      const buttonIndex = buttonAssignments.get(actionInstance.id);
+      if (buttonIndex !== undefined) {
+        await this.updateButton(actionInstance, buttonIndex, windows);
+      }
+    }
+  }
+
+  /**
+   * Update a single button's display
+   */
+  private async updateButton(
+    actionInstance: Action,
+    buttonIndex: number,
+    windows: GhosttyWindow[]
+  ): Promise<void> {
+    if (buttonIndex >= windows.length) {
+      // No window for this button - show empty state
+      await actionInstance.setTitle('');
+      await actionInstance.setImage(STATE_IMAGES.notRunning);
+      return;
+    }
+
+    const window = windows[buttonIndex];
+
+    // Set title to display name, formatted for multiple lines
+    const displayName = window.displayName || window.title;
+    const formattedTitle = this.formatTitle(displayName);
+    await actionInstance.setTitle(formattedTitle);
+
+    // Set image based on Claude state
+    const imageKey = window.claudeState === 'notRunning' ? 'notRunning' : window.claudeState;
+    await actionInstance.setImage(STATE_IMAGES[imageKey] || STATE_IMAGES.notRunning);
+  }
+
+  /**
+   * Format title for multi-line display on button
+   */
+  private formatTitle(title: string): string {
+    // If short enough, return as-is
+    if (title.length <= 10) {
+      return title;
+    }
+
+    // Try to split at hyphen or space near middle
+    const midpoint = Math.floor(title.length / 2);
+
+    // Look for hyphen or space to split at
+    let splitIndex = -1;
+
+    // Search outward from midpoint for a good split point
+    for (let i = 0; i <= midpoint; i++) {
+      if (midpoint + i < title.length && (title[midpoint + i] === '-' || title[midpoint + i] === ' ')) {
+        splitIndex = midpoint + i;
+        break;
+      }
+      if (midpoint - i >= 0 && (title[midpoint - i] === '-' || title[midpoint - i] === ' ')) {
+        splitIndex = midpoint - i;
+        break;
+      }
+    }
+
+    if (splitIndex > 0 && splitIndex < title.length - 1) {
+      const char = title[splitIndex];
+      if (char === '-') {
+        // Keep hyphen on first line
+        return title.substring(0, splitIndex + 1) + '\n' + title.substring(splitIndex + 1);
+      } else {
+        // Space - don't include it
+        return title.substring(0, splitIndex) + '\n' + title.substring(splitIndex + 1);
+      }
+    }
+
+    // No good split point - just split at midpoint
+    return title.substring(0, midpoint) + '\n' + title.substring(midpoint);
+  }
+}

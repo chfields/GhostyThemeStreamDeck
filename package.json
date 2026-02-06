@@ -1,0 +1,21 @@
+{
+  "name": "ghosty-theme-streamdeck",
+  "version": "1.0.0",
+  "description": "Stream Deck plugin for Ghostty window management with Claude state indicators",
+  "main": "com.chfields.ghostty-claude.sdPlugin/bin/plugin.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "link": "streamdeck link com.chfields.ghostty-claude.sdPlugin",
+    "dev": "npm run build && npm run link"
+  },
+  "author": "chfields",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^0.3.0"
+  }
+}

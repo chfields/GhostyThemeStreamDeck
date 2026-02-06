@@ -1,0 +1,42 @@
+{
+  "SDKVersion": 2,
+  "Author": "chfields",
+  "CodePath": "bin/plugin.js",
+  "Description": "Display Claude state indicators for Ghostty terminal windows and enable window switching.",
+  "Name": "Ghostty Claude",
+  "Version": "1.0.0",
+  "Category": "Ghostty",
+  "CategoryIcon": "icons/category",
+  "Icon": "icons/plugin",
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "11.0"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "6.0"
+  },
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
+  "Actions": [
+    {
+      "Icon": "images/action",
+      "Name": "Ghostty Window",
+      "States": [
+        {
+          "Image": "images/not-running",
+          "TitleAlignment": "bottom",
+          "FontSize": "14"
+        }
+      ],
+      "Tooltip": "Shows Claude state for a Ghostty window. Press to focus the window.",
+      "UUID": "com.chfields.ghostty-claude.window",
+      "SupportedInMultiActions": false,
+      "VisibleInActionsList": true,
+      "Controllers": ["Keypad"]
+    }
+  ]
+}
