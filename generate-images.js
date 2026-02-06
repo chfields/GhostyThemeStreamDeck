@@ -18,8 +18,13 @@ if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir, { recursive: true });
 
 // Image configurations
 const images = {
+  'asking': {
+    background: '#EF4444', // Red - urgent, Claude asked a question
+    icon: 'exclaim-question',
+    iconColor: '#FFFFFF'
+  },
   'waiting': {
-    background: '#F59E0B', // Amber/yellow
+    background: '#F59E0B', // Amber/yellow - at prompt, ready for input
     icon: 'question',
     iconColor: '#FFFFFF'
   },
@@ -48,6 +53,13 @@ const images = {
 // SVG icon paths - very small icons at top of button
 // Icons are ~32x32, positioned near top to maximize text area
 const iconPaths = {
+  'exclaim-question': `
+    <!-- Exclamation on left, question on right - more urgent -->
+    <line x1="58" y1="22" x2="58" y2="40" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="58" cy="50" r="3" fill="currentColor"/>
+    <path d="M79 30 Q79 22 86 22 Q93 22 93 30 Q93 36 86 39 L86 44" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="86" cy="50" r="2.5" fill="currentColor"/>
+  `,
   question: `
     <circle cx="72" cy="36" r="18" fill="none" stroke="currentColor" stroke-width="4"/>
     <path d="M65 30 Q65 22 72 22 Q79 22 79 30 Q79 36 72 39 L72 44" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>

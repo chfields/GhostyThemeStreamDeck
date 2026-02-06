@@ -12,14 +12,18 @@ import { GhosttyWindow } from '../services/ThemePickerClient';
 // Map of action ID to assigned window index
 const buttonAssignments = new Map<string, number>();
 
-// Track all active actions in order of appearance
-const activeActions: Action[] = [];
+// Track all active actions
+const activeActions = new Map<string, Action>();
+
+// Track used indices to find lowest available
+const usedIndices = new Set<number>();
 
 // Shared state manager instance
 let stateManager: WindowStateManager | null = null;
 
 // Images for each state
 const STATE_IMAGES: Record<string, string> = {
+  asking: 'images/asking',
   waiting: 'images/waiting',
   working: 'images/working',
   running: 'images/running',
@@ -35,10 +39,8 @@ export class GhosttyWindowAction extends SingletonAction {
     const actionInstance = ev.action;
     const actionId = actionInstance.id;
 
-    // Add to active actions if not already present
-    if (!activeActions.find(a => a.id === actionId)) {
-      activeActions.push(actionInstance);
-    }
+    // Track this action
+    activeActions.set(actionId, actionInstance);
 
     // Initialize state manager on first button
     if (!stateManager) {
@@ -53,8 +55,12 @@ export class GhosttyWindowAction extends SingletonAction {
       stateManager.start(1000);
     }
 
-    // Assign this button to a window slot based on its position
-    const buttonIndex = activeActions.findIndex(a => a.id === actionId);
+    // Find lowest available index
+    let buttonIndex = 0;
+    while (usedIndices.has(buttonIndex)) {
+      buttonIndex++;
+    }
+    usedIndices.add(buttonIndex);
     buttonAssignments.set(actionId, buttonIndex);
 
     // Update this button with current state
@@ -68,15 +74,18 @@ export class GhosttyWindowAction extends SingletonAction {
   override async onWillDisappear(ev: WillDisappearEvent<object>): Promise<void> {
     const actionId = ev.action.id;
 
-    // Remove from tracking
-    const index = activeActions.findIndex(a => a.id === actionId);
-    if (index !== -1) {
-      activeActions.splice(index, 1);
+    // Release the index
+    const buttonIndex = buttonAssignments.get(actionId);
+    if (buttonIndex !== undefined) {
+      usedIndices.delete(buttonIndex);
     }
+
+    // Remove from tracking
+    activeActions.delete(actionId);
     buttonAssignments.delete(actionId);
 
     // Stop state manager if no buttons left
-    if (activeActions.length === 0 && stateManager) {
+    if (activeActions.size === 0 && stateManager) {
       stateManager.stop();
       stateManager = null;
     }
@@ -119,8 +128,8 @@ export class GhosttyWindowAction extends SingletonAction {
    * Update all buttons with current window state
    */
   private async updateAllButtons(windows: GhosttyWindow[]): Promise<void> {
-    for (const actionInstance of activeActions) {
-      const buttonIndex = buttonAssignments.get(actionInstance.id);
+    for (const [actionId, actionInstance] of activeActions) {
+      const buttonIndex = buttonAssignments.get(actionId);
       if (buttonIndex !== undefined) {
         await this.updateButton(actionInstance, buttonIndex, windows);
       }

@@ -9,7 +9,7 @@ export interface GhosttyWindow {
   pid: number;
   axIndex: number;
   title: string;
-  claudeState: 'waiting' | 'working' | 'running' | 'notRunning';
+  claudeState: 'asking' | 'waiting' | 'working' | 'running' | 'notRunning';
   displayName: string;
   workstreamName: string | null;
   hasClaudeProcess: boolean;
