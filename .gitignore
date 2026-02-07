@@ -13,3 +13,6 @@ node_modules/
 *.swp
 *.swo
 com.chfields.ghostty-claude.sdPlugin/logs/
+
+# Release artifacts
+*.streamDeckPlugin

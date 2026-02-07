@@ -43,12 +43,15 @@ const streamdeck_1 = require("@elgato/streamdeck");
 const WindowStateManager_1 = require("../services/WindowStateManager");
 // Map of action ID to assigned window index
 const buttonAssignments = new Map();
-// Track all active actions in order of appearance
-const activeActions = [];
+// Track all active actions
+const activeActions = new Map();
+// Track used indices to find lowest available
+const usedIndices = new Set();
 // Shared state manager instance
 let stateManager = null;
 // Images for each state
 const STATE_IMAGES = {
+    asking: 'images/asking',
     waiting: 'images/waiting',
     working: 'images/working',
     running: 'images/running',
@@ -67,10 +70,8 @@ let GhosttyWindowAction = (() => {
         async onWillAppear(ev) {
             const actionInstance = ev.action;
             const actionId = actionInstance.id;
-            // Add to active actions if not already present
-            if (!activeActions.find(a => a.id === actionId)) {
-                activeActions.push(actionInstance);
-            }
+            // Track this action
+            activeActions.set(actionId, actionInstance);
             // Initialize state manager on first button
             if (!stateManager) {
                 stateManager = new WindowStateManager_1.WindowStateManager();
@@ -81,8 +82,12 @@ let GhosttyWindowAction = (() => {
                 // Start polling
                 stateManager.start(1000);
             }
-            // Assign this button to a window slot based on its position
-            const buttonIndex = activeActions.findIndex(a => a.id === actionId);
+            // Find lowest available index
+            let buttonIndex = 0;
+            while (usedIndices.has(buttonIndex)) {
+                buttonIndex++;
+            }
+            usedIndices.add(buttonIndex);
             buttonAssignments.set(actionId, buttonIndex);
             // Update this button with current state
             const windows = stateManager.getWindows();
@@ -93,14 +98,16 @@ let GhosttyWindowAction = (() => {
          */
         async onWillDisappear(ev) {
             const actionId = ev.action.id;
-            // Remove from tracking
-            const index = activeActions.findIndex(a => a.id === actionId);
-            if (index !== -1) {
-                activeActions.splice(index, 1);
+            // Release the index
+            const buttonIndex = buttonAssignments.get(actionId);
+            if (buttonIndex !== undefined) {
+                usedIndices.delete(buttonIndex);
             }
+            // Remove from tracking
+            activeActions.delete(actionId);
             buttonAssignments.delete(actionId);
             // Stop state manager if no buttons left
-            if (activeActions.length === 0 && stateManager) {
+            if (activeActions.size === 0 && stateManager) {
                 stateManager.stop();
                 stateManager = null;
             }
@@ -138,8 +145,8 @@ let GhosttyWindowAction = (() => {
          * Update all buttons with current window state
          */
         async updateAllButtons(windows) {
-            for (const actionInstance of activeActions) {
-                const buttonIndex = buttonAssignments.get(actionInstance.id);
+            for (const [actionId, actionInstance] of activeActions) {
+                const buttonIndex = buttonAssignments.get(actionId);
                 if (buttonIndex !== undefined) {
                     await this.updateButton(actionInstance, buttonIndex, windows);
                 }

@@ -4,7 +4,8 @@ exports.WindowStateManager = void 0;
 const ThemePickerClient_1 = require("./ThemePickerClient");
 // Priority order for sorting windows (higher = more important = shown first)
 const STATE_PRIORITY = {
-    waiting: 4, // Needs input - highest priority
+    asking: 5, // Claude asked a question - highest priority
+    waiting: 4, // At prompt, ready for input
     notRunning: 3, // Available for new work
     working: 2, // Claude processing - busy
     running: 1, // Claude detected but state unknown
@@ -16,6 +17,11 @@ class WindowStateManager {
         this.listeners = new Set();
         this.currentWindows = [];
         this.isPolling = false;
+        // Track when windows transition from "working" to another state
+        // Key: window ID, Value: timestamp (ms) when it left "working" state
+        this.finishedWorkingAt = new Map();
+        // Track previous state for each window to detect transitions
+        this.previousStates = new Map();
         this.client = new ThemePickerClient_1.ThemePickerClient();
     }
     /**
@@ -81,14 +87,46 @@ class WindowStateManager {
     }
     /**
      * Sort windows by Claude state priority
-     * Priority: waiting > notRunning > working > running
+     * Priority: asking > waiting > notRunning > working > running
+     * Secondary: within same state, most recently finished working first
      */
     sortWindowsByPriority(windows) {
         return windows.sort((a, b) => {
             const priorityA = STATE_PRIORITY[a.claudeState];
             const priorityB = STATE_PRIORITY[b.claudeState];
-            return priorityB - priorityA; // Higher priority first
+            // Primary sort by state priority
+            if (priorityA !== priorityB) {
+                return priorityB - priorityA; // Higher priority first
+            }
+            // Secondary sort: most recently finished working comes first
+            const finishedA = this.finishedWorkingAt.get(a.id) ?? 0;
+            const finishedB = this.finishedWorkingAt.get(b.id) ?? 0;
+            return finishedB - finishedA; // More recent first
         });
+    }
+    /**
+     * Track state transitions to detect when windows finish working
+     */
+    trackStateTransitions(windows) {
+        const now = Date.now();
+        for (const window of windows) {
+            const prevState = this.previousStates.get(window.id);
+            const currentState = window.claudeState;
+            // If transitioned FROM working to something else, record the timestamp
+            if (prevState === 'working' && currentState !== 'working') {
+                this.finishedWorkingAt.set(window.id, now);
+            }
+            // Update previous state
+            this.previousStates.set(window.id, currentState);
+        }
+        // Clean up stale entries for windows that no longer exist
+        const currentIds = new Set(windows.map(w => w.id));
+        for (const id of this.previousStates.keys()) {
+            if (!currentIds.has(id)) {
+                this.previousStates.delete(id);
+                this.finishedWorkingAt.delete(id);
+            }
+        }
     }
     /**
      * Poll the API for window updates
@@ -96,6 +134,8 @@ class WindowStateManager {
     async poll() {
         try {
             const windows = await this.client.getWindows();
+            // Track state transitions before sorting
+            this.trackStateTransitions(windows);
             const sortedWindows = this.sortWindowsByPriority(windows);
             const windowsJson = JSON.stringify(sortedWindows);
             // Check if windows have changed
