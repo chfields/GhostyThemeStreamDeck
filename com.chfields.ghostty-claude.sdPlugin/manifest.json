@@ -5,7 +5,7 @@
   "Description": "Display Claude state indicators for Ghostty terminal windows and enable window switching.",
   "Name": "Ghostty Claude",
   "Version": "1.0.0",
-  "Category": "Ghostty",
+  "Category": "Ghostty Tracker",
   "CategoryIcon": "icons/category",
   "Icon": "icons/plugin",
   "OS": [

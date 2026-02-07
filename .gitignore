@@ -12,3 +12,4 @@ node_modules/
 .vscode/
 *.swp
 *.swo
+com.chfields.ghostty-claude.sdPlugin/logs/
