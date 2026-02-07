@@ -3,12 +3,13 @@ import { ThemePickerClient, GhosttyWindow } from './ThemePickerClient';
 export type ClaudeState = 'asking' | 'waiting' | 'working' | 'running' | 'notRunning';
 
 // Priority order for sorting windows (higher = more important = shown first)
+// Matches GhosttyThemePicker's ClaudeState enum order
 const STATE_PRIORITY: Record<ClaudeState, number> = {
   asking: 5,     // Claude asked a question - highest priority
   waiting: 4,    // At prompt, ready for input
-  notRunning: 3, // Available for new work
+  running: 3,    // Claude detected but state unknown
   working: 2,    // Claude processing - busy
-  running: 1,    // Claude detected but state unknown
+  notRunning: 1, // No Claude process - lowest priority
 };
 
 export interface WindowStateChange {
@@ -110,7 +111,7 @@ export class WindowStateManager {
 
   /**
    * Sort windows by Claude state priority
-   * Priority: asking > waiting > notRunning > working > running
+   * Priority: asking > waiting > running > working > notRunning
    * Secondary: within same state, most recently finished working first
    */
   private sortWindowsByPriority(windows: GhosttyWindow[]): GhosttyWindow[] {
