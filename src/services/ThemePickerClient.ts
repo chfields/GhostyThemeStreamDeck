@@ -24,6 +24,11 @@ export interface HealthResponse {
   version: string;
 }
 
+export interface LaunchResponse {
+  theme: string;
+  windowName: string;
+}
+
 export class ThemePickerClient {
   private portFilePath: string;
   private cachedPort: number | null = null;
@@ -158,5 +163,12 @@ export class ThemePickerClient {
    */
   async focusWindow(windowId: string): Promise<void> {
     await this.request<{ success: boolean }>('POST', `/api/windows/${windowId}/focus`);
+  }
+
+  /**
+   * Launch a new Ghostty window with a random theme
+   */
+  async launchRandom(): Promise<LaunchResponse> {
+    return this.request<LaunchResponse>('POST', '/api/launch-random');
   }
 }

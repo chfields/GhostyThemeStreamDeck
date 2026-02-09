@@ -28,6 +28,7 @@ const STATE_IMAGES: Record<string, string> = {
   working: 'images/working',
   running: 'images/running',
   notRunning: 'images/not-running',
+  launchRandom: 'images/launch-random',
 };
 
 @action({ UUID: 'com.chfields.ghostty-claude.window' })
@@ -55,10 +56,21 @@ export class GhosttyWindowAction extends SingletonAction {
       stateManager.start(1000);
     }
 
-    // Find lowest available index
-    let buttonIndex = 0;
-    while (usedIndices.has(buttonIndex)) {
-      buttonIndex++;
+    // Use physical position for consistent ordering across restarts
+    let buttonIndex: number;
+    const payload = ev.payload as { coordinates?: { row: number; column: number } };
+    const coords = payload.coordinates;
+    if (coords) {
+      // Calculate index from position: row * columns + column
+      // Standard Stream Deck has 5 columns, XL has 8, Mini has 3
+      const columns = 5;
+      buttonIndex = coords.row * columns + coords.column;
+    } else {
+      // Fallback: find lowest available index
+      buttonIndex = 0;
+      while (usedIndices.has(buttonIndex)) {
+        buttonIndex++;
+      }
     }
     usedIndices.add(buttonIndex);
     buttonAssignments.set(actionId, buttonIndex);
@@ -121,6 +133,20 @@ export class GhosttyWindowAction extends SingletonAction {
         console.error('Failed to focus window:', err);
         await actionInstance.showAlert();
       }
+    } else {
+      // No window assigned - launch a random Ghostty window
+      try {
+        await actionInstance.setTitle('...');
+        await stateManager.launchRandom();
+        setTimeout(async () => {
+          if (stateManager) {
+            await this.updateButton(actionInstance, buttonIndex, stateManager.getWindows());
+          }
+        }, 500);
+      } catch (err) {
+        console.error('Failed to launch random:', err);
+        await actionInstance.showAlert();
+      }
     }
   }
 
@@ -145,9 +171,9 @@ export class GhosttyWindowAction extends SingletonAction {
     windows: GhosttyWindow[]
   ): Promise<void> {
     if (buttonIndex >= windows.length) {
-      // No window for this button - show empty state
+      // No window for this button - show dice icon to launch random
       await actionInstance.setTitle('');
-      await actionInstance.setImage(STATE_IMAGES.notRunning);
+      await actionInstance.setImage(STATE_IMAGES.launchRandom);
       return;
     }
 

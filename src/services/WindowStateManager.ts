@@ -1,4 +1,4 @@
-import { ThemePickerClient, GhosttyWindow } from './ThemePickerClient';
+import { ThemePickerClient, GhosttyWindow, LaunchResponse } from './ThemePickerClient';
 
 export type ClaudeState = 'asking' | 'waiting' | 'working' | 'running' | 'notRunning';
 
@@ -100,6 +100,13 @@ export class WindowStateManager {
    */
   async focusWindow(windowId: string): Promise<void> {
     await this.client.focusWindow(windowId);
+  }
+
+  /**
+   * Launch a new Ghostty window with a random theme
+   */
+  async launchRandom(): Promise<LaunchResponse> {
+    return this.client.launchRandom();
   }
 
   /**

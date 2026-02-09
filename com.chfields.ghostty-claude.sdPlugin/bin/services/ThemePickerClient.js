@@ -156,6 +156,12 @@ class ThemePickerClient {
     async focusWindow(windowId) {
         await this.request('POST', `/api/windows/${windowId}/focus`);
     }
+    /**
+     * Launch a new Ghostty window with a random theme
+     */
+    async launchRandom() {
+        return this.request('POST', '/api/launch-random');
+    }
 }
 exports.ThemePickerClient = ThemePickerClient;
 //# sourceMappingURL=ThemePickerClient.js.map

@@ -81,6 +81,12 @@ class WindowStateManager {
         await this.client.focusWindow(windowId);
     }
     /**
+     * Launch a new Ghostty window with a random theme
+     */
+    async launchRandom() {
+        return this.client.launchRandom();
+    }
+    /**
      * Check if API is available
      */
     async isAvailable() {

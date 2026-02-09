@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <rect width="144" height="144" rx="16" fill="#6B7280"/>
+  <g>
+    <!-- Dice body -->
+    <rect x="38" y="38" width="68" height="68" rx="12" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+    <!-- Top-left dot -->
+    <circle cx="56" cy="56" r="6" fill="#FFFFFF"/>
+    <!-- Top-right dot -->
+    <circle cx="88" cy="56" r="6" fill="#FFFFFF"/>
+    <!-- Center dot -->
+    <circle cx="72" cy="72" r="6" fill="#FFFFFF"/>
+    <!-- Bottom-left dot -->
+    <circle cx="56" cy="88" r="6" fill="#FFFFFF"/>
+    <!-- Bottom-right dot -->
+    <circle cx="88" cy="88" r="6" fill="#FFFFFF"/>
+  </g>
+</svg>
