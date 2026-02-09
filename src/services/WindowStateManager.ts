@@ -1,4 +1,4 @@
-import { ThemePickerClient, GhosttyWindow, LaunchResponse } from './ThemePickerClient';
+import { ThemePickerClient, GhosttyWindow, LaunchResponse, WorkstreamInfo, WorkstreamLaunchResponse } from './ThemePickerClient';
 
 export type ClaudeState = 'asking' | 'waiting' | 'working' | 'running' | 'notRunning';
 
@@ -114,6 +114,27 @@ export class WindowStateManager {
    */
   async isAvailable(): Promise<boolean> {
     return this.client.isAvailable();
+  }
+
+  /**
+   * Get all configured workstreams
+   */
+  async getWorkstreams(): Promise<WorkstreamInfo[]> {
+    return this.client.getWorkstreams();
+  }
+
+  /**
+   * Launch a workstream by ID
+   */
+  async launchWorkstream(id: string): Promise<WorkstreamLaunchResponse> {
+    return this.client.launchWorkstream(id);
+  }
+
+  /**
+   * Open the Quick Launch panel on the Mac
+   */
+  async openQuickLaunch(): Promise<void> {
+    return this.client.openQuickLaunch();
   }
 
   /**

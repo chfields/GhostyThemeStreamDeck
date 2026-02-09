@@ -29,6 +29,23 @@ export interface LaunchResponse {
   windowName: string;
 }
 
+export interface WorkstreamInfo {
+  id: string;
+  name: string;
+  theme: string;
+  directory: string | null;
+  hasCommand: boolean;
+}
+
+export interface WorkstreamsResponse {
+  workstreams: WorkstreamInfo[];
+}
+
+export interface WorkstreamLaunchResponse {
+  name: string;
+  theme: string;
+}
+
 export class ThemePickerClient {
   private portFilePath: string;
   private cachedPort: number | null = null;
@@ -170,5 +187,27 @@ export class ThemePickerClient {
    */
   async launchRandom(): Promise<LaunchResponse> {
     return this.request<LaunchResponse>('POST', '/api/launch-random');
+  }
+
+  /**
+   * Get all configured workstreams
+   */
+  async getWorkstreams(): Promise<WorkstreamInfo[]> {
+    const response = await this.request<WorkstreamsResponse>('GET', '/api/workstreams');
+    return response.workstreams;
+  }
+
+  /**
+   * Launch a workstream by ID
+   */
+  async launchWorkstream(id: string): Promise<WorkstreamLaunchResponse> {
+    return this.request<WorkstreamLaunchResponse>('POST', `/api/workstreams/${id}/launch`);
+  }
+
+  /**
+   * Open the Quick Launch panel on the Mac
+   */
+  async openQuickLaunch(): Promise<void> {
+    await this.request<{ success: boolean }>('POST', '/api/quick-launch');
   }
 }

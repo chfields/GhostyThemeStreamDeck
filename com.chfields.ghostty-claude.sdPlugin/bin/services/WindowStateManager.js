@@ -93,6 +93,24 @@ class WindowStateManager {
         return this.client.isAvailable();
     }
     /**
+     * Get all configured workstreams
+     */
+    async getWorkstreams() {
+        return this.client.getWorkstreams();
+    }
+    /**
+     * Launch a workstream by ID
+     */
+    async launchWorkstream(id) {
+        return this.client.launchWorkstream(id);
+    }
+    /**
+     * Open the Quick Launch panel on the Mac
+     */
+    async openQuickLaunch() {
+        return this.client.openQuickLaunch();
+    }
+    /**
      * Sort windows by Claude state priority
      * Priority: asking > waiting > running > working > notRunning
      * Secondary: within same state, most recently finished working first

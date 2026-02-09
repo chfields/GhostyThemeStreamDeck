@@ -162,6 +162,25 @@ class ThemePickerClient {
     async launchRandom() {
         return this.request('POST', '/api/launch-random');
     }
+    /**
+     * Get all configured workstreams
+     */
+    async getWorkstreams() {
+        const response = await this.request('GET', '/api/workstreams');
+        return response.workstreams;
+    }
+    /**
+     * Launch a workstream by ID
+     */
+    async launchWorkstream(id) {
+        return this.request('POST', `/api/workstreams/${id}/launch`);
+    }
+    /**
+     * Open the Quick Launch panel on the Mac
+     */
+    async openQuickLaunch() {
+        await this.request('POST', '/api/quick-launch');
+    }
 }
 exports.ThemePickerClient = ThemePickerClient;
 //# sourceMappingURL=ThemePickerClient.js.map
