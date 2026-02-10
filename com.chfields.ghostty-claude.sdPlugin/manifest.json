@@ -4,7 +4,7 @@
   "CodePath": "bin/plugin.js",
   "Description": "Display Claude state indicators for Ghostty terminal windows and enable window switching.",
   "Name": "Ghostty Claude",
-  "Version": "1.0.1",
+  "Version": "1.1.0",
   "Category": "Ghostty Tracker",
   "CategoryIcon": "icons/category",
   "Icon": "icons/plugin",
