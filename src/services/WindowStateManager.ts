@@ -155,7 +155,12 @@ export class WindowStateManager {
       // Secondary sort: most recently finished working comes first
       const finishedA = this.finishedWorkingAt.get(a.id) ?? 0;
       const finishedB = this.finishedWorkingAt.get(b.id) ?? 0;
-      return finishedB - finishedA; // More recent first
+      if (finishedA !== finishedB) {
+        return finishedB - finishedA; // More recent first
+      }
+
+      // Stable tiebreaker: sort by window ID to prevent flickering
+      return a.id.localeCompare(b.id);
     });
   }
 
